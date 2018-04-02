@@ -1,0 +1,7 @@
+## YAML Template.
+---
+sql_server: localhost
+sql_port: 3306
+sql_username: my_username
+sql_password: my_password
+sql_databasename: my_db_name

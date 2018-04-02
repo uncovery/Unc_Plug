@@ -1,0 +1,13 @@
+name: UncPlug
+version: 1.0
+main: me.uncovery.uncplug.main
+commands:
+    unc_chunks:
+        description: Command to list all loaded chunks
+        usage: /unc_chunks
+    unc_chunks_reset:
+        description: Erase the chunks databases
+        usage: /unc_chunks_reset
+    unc_chunks_unload:
+        description: unloads all chunks outside user reach and spawn chunks
+        usage: /unc_chunks_unload
