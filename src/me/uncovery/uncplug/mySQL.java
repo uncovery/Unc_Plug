@@ -36,6 +36,7 @@ public class mySQL {
         
         try { //Another try catch to get any SQL errors (for example connections errors)
             connection = DriverManager.getConnection(sqlUrl, sql_username, sql_password);
+            System.out.println("jdbc connection established!");
             return true;
         } catch (SQLException e) {
             //catching errors)
@@ -49,7 +50,7 @@ public class mySQL {
             if (connection != null && !connection.isClosed()){ //checking if connection isn't null to
                 //avoid receiving a nullpointer
                 connection.close(); //closing the connection field variable.
-                System.err.println("jdbc driver connection closed!");
+                System.err.println("jdbc connection closed!");
             }
         } catch(SQLException e) {
             return false;
