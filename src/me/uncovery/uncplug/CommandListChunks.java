@@ -98,14 +98,14 @@ public class CommandListChunks implements CommandExecutor   {
                         long insert_id = writeChunkData(worldname, xCoord, zCoord);
                         // it seems there is some bug and a wrong/zero insert ID is returned, so check if that is the case
                         if (insert_id < 1) {
-                            System.out.println("writeChunkData Error: ChunkID is zero");
+                            System.err.println("writeChunkData Error: ChunkID is zero");
                             return false;
                         }
                         // we make a string here already for the SQL so that we can easily join them later
                         ChunkIDs.add("(" + insert_id + "," + tps + ")");
                         i++; // count chunks
                     } catch (SQLException ex) {
-                        System.out.println("writeChunkData Error in getLoadedChunks: " + ex);
+                        System.err.println("writeChunkData Error in getLoadedChunks: " + ex);
                         return false;
                     }
                 }
@@ -129,7 +129,7 @@ public class CommandListChunks implements CommandExecutor   {
                     try {
                         writeChunkEvent(ListPiece);
                     } catch (SQLException ex) {
-                        System.out.println("writeChunkData Error in getLoadedChunks: " + ex);
+                        System.err.println("writeChunkData Error in getLoadedChunks: " + ex);
                         return false;
                     }
                     k = j;
@@ -148,8 +148,7 @@ public class CommandListChunks implements CommandExecutor   {
         long InsertID = 0;
         String search_sql = "SELECT chunk_id FROM minecraft_log.lag_chunks WHERE world='" + world + "' AND x_coord=" + xCoord + " AND z_coord="+ zCoord;
         System.out.println("search SQL:" + search_sql);
-        
-        
+
         try (
             PreparedStatement statement = connection.prepareStatement(search_sql);
             ResultSet results = statement.executeQuery();
@@ -212,7 +211,7 @@ public class CommandListChunks implements CommandExecutor   {
                 }
             }
         } catch (SQLException S) {
-            System.out.println("DB Error in executeSQLUpdate: " + S);
+            System.err.println("DB Error in executeSQLUpdate: " + S);
             return -1;
         }
         return 0;
