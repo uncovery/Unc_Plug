@@ -68,7 +68,11 @@ public class CommandListChunks implements CommandExecutor   {
         // get current TPS
         double tps = getTPS();
 
-        connection = new mySQL().openDBConnection();
+        boolean check = new mySQL().openDBConnection();
+        if (!check) {
+            System.err.println("Database connection not established!");
+            return false;
+        }
 
         // status message for other command line arguments
         System.out.println("Collecting loaded chunks @ TPS of " + tps);
@@ -147,21 +151,17 @@ public class CommandListChunks implements CommandExecutor   {
         // find the key
         long InsertID = 0;
         String search_sql = "SELECT chunk_id FROM minecraft_log.lag_chunks WHERE world='" + world + "' AND x_coord=" + xCoord + " AND z_coord="+ zCoord;
-        System.out.println("search SQL:" + search_sql);
-
         try (
             PreparedStatement statement = connection.prepareStatement(search_sql);
             ResultSet results = statement.executeQuery();
         ) {
             if (!results.isBeforeFirst() ) {
                 String sql = "INSERT INTO minecraft_log.lag_chunks SET world='" + world + "', x_coord="+xCoord+", z_coord="+ zCoord;
-                System.out.println("insert SQL:" + sql);
                 InsertID = executeSQLUpdate(sql, true);
                 return InsertID;
             } else {
                 while (results.next()) {
                     InsertID = results.getLong("chunk_id");
-                    System.out.println("chunk id:" + InsertID);
                     return InsertID;
                 }
             }

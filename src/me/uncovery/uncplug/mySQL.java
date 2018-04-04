@@ -16,30 +16,32 @@ import static me.uncovery.uncplug.main.connection;
  * @author spiesol01
  */
 public class mySQL {
-    public Connection openDBConnection() throws SQLException {
+    public boolean openDBConnection() throws SQLException {
         
         // MySQL setup
         // make a general check on plugin start if the MySQL connection works
         try { //We use a try catch to avoid errors, hopefully we don't get any.
             Class.forName("com.mysql.jdbc.Driver"); //this accesses Driver in jdbc.
         } catch (ClassNotFoundException e) {
-            System.err.println("jdbc driver unavailable!");
+            System.err.println("jdbc driver unavailable:" + e);
         }
         
         String sql_server = thisPlugin.getConfig().getString("sql_server");
-        String sql_port =  thisPlugin.getConfig().getString("sql_server");
-        String sql_dbname =  thisPlugin.getConfig().getString("sql_dbname");
+        String sql_port =  thisPlugin.getConfig().getString("sql_port");
+        String sql_databasename =  thisPlugin.getConfig().getString("sql_databasename");
         String sql_username =  thisPlugin.getConfig().getString("sql_username");
         String sql_password =  thisPlugin.getConfig().getString("sql_password");
         
+        String sqlUrl =  "jdbc:mysql://" + sql_server + ":" + sql_port + "/" + sql_databasename;
+        
         try { //Another try catch to get any SQL errors (for example connections errors)
-            String sqlUrl =  "jdbc:mysql://" + sql_server + ":" + sql_port + "/" + sql_dbname;
-            connection = DriverManager.getConnection(sqlUrl, sql_username, sql_password );
+            connection = DriverManager.getConnection(sqlUrl, sql_username, sql_password);
+            return true;
         } catch (SQLException e) {
             //catching errors)
-            //prints out SQLException errors to the console (if any)
+            System.err.println("Error establishing connection:" + sqlUrl +  " with error " + e);
+            return false;
         }
-        return connection;
     }
 
     public boolean closeDBConnection() throws SQLException {
