@@ -187,12 +187,19 @@ public class CommandListChunks implements CommandExecutor   {
     }
 
     // function to reset the DB
-    public void resetChunkDB() throws SQLException {
+    public boolean resetChunkDB() throws SQLException {
+        boolean check = new mySQL().openDBConnection();
+        if (!check) {
+            System.err.println("Database connection not established!");
+            return false;
+        }        
         String sql1 = "TRUNCATE TABLE minecraft_log.lag_chunks";
         executeSQLUpdate(sql1, false);
 
         String sql2 = "TRUNCATE TABLE minecraft_log.lag_events";
         executeSQLUpdate(sql2, false);
+        new mySQL().closeDBConnection();
+        return true;
     }
 
     // abstraction to write SQL data to the DB
