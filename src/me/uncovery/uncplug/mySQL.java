@@ -1,36 +1,29 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package me.uncovery.uncplug;
-import org.bukkit.plugin.java.JavaPlugin;
+
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import static me.uncovery.uncplug.main.thisPlugin;
 import java.sql.*;
+import static me.uncovery.uncplug.main.connection;
 
-public class main extends JavaPlugin {
-    
-    static JavaPlugin thisPlugin;
-    static Connection connection;
-
-    @Override
-    public void onEnable(){
-        // config file setup
+/**
+ *
+ * @author spiesol01
+ */
+public class mySQL {
+    public Connection openDBConnection() throws SQLException {
         
-        thisPlugin = this;
-        
-        this.getConfig().options().copyDefaults(true);
-        this.saveConfig();
-        this.reloadConfig();
-
-        // command to list all chunks that are loaded.
-        getCommand("unc_chunks").setExecutor(new CommandListChunks());
-        getCommand("unc_chunks_reset").setExecutor(new CommandListChunks());
-        getCommand("unc_chunks_unload").setExecutor(new CommandUnloadChunks());
-    }
-    
-    public boolean openDBConnection() throws SQLException {
         // MySQL setup
         // make a general check on plugin start if the MySQL connection works
         try { //We use a try catch to avoid errors, hopefully we don't get any.
             Class.forName("com.mysql.jdbc.Driver"); //this accesses Driver in jdbc.
         } catch (ClassNotFoundException e) {
             System.err.println("jdbc driver unavailable!");
-            return false;
         }
         
         String sql_server = thisPlugin.getConfig().getString("sql_server");
@@ -41,17 +34,12 @@ public class main extends JavaPlugin {
         
         try { //Another try catch to get any SQL errors (for example connections errors)
             String sqlUrl =  "jdbc:mysql://" + sql_server + ":" + sql_port + "/" + sql_dbname;
-
             connection = DriverManager.getConnection(sqlUrl, sql_username, sql_password );
-            //with the method getConnection() from DriverManager, we're trying to set
-            //the connection's url, username, password to the variables we made earlier and
-            //trying to get a connection at the same time. JDBC allows us to do this.
         } catch (SQLException e) {
             //catching errors)
             //prints out SQLException errors to the console (if any)
-            return false;
         }
-        return true;
+        return connection;
     }
 
     public boolean closeDBConnection() throws SQLException {
@@ -65,11 +53,5 @@ public class main extends JavaPlugin {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public void onDisable() {
-        // invoke on disable to close the MySQL connection
-
     }
 }

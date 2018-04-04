@@ -6,18 +6,21 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.Chunk;
+import net.minecraft.server.v1_12_R1.MinecraftServer;
 
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import java.sql.*;
 import static me.uncovery.uncplug.main.connection;
 
-import net.minecraft.server.v1_12_R1.MinecraftServer;
 
 /*
 Command structure to write list of loaded chunks to database
 */
-public class CommandListChunks implements CommandExecutor {
+public class CommandListChunks implements CommandExecutor   {
     @Override
 
     // what do we execute when the command is run?
@@ -34,7 +37,12 @@ public class CommandListChunks implements CommandExecutor {
             }
         }
 
-        boolean check_exec = getLoadedChunks();
+        boolean check_exec = false;
+        try {
+            check_exec = getLoadedChunks();
+        } catch (SQLException ex) {
+            Logger.getLogger(CommandListChunks.class.getName()).log(Level.SEVERE, null, ex);
+        }
         return check_exec;
     }
 
@@ -54,10 +62,13 @@ public class CommandListChunks implements CommandExecutor {
      * get a list of all loaded chunks per world, write them to database with TPS information
      *
      * @return
+     * @throws java.sql.SQLException
      */
-    public boolean getLoadedChunks() {
+    public boolean getLoadedChunks() throws SQLException {
         // get current TPS
         double tps = getTPS();
+
+        connection = new mySQL().openDBConnection();
 
         // status message for other command line arguments
         System.out.println("Collecting loaded chunks @ TPS of " + tps);
@@ -81,7 +92,7 @@ public class CommandListChunks implements CommandExecutor {
                 int zCoord = currentChunk.getZ();
 
                 // skip spawn chunks
-                if (xCoord > 7 && zCoord > 7) {
+                if (xCoord > 7 || zCoord > 7) {
                     try {
                         // write the chunk data and command line argument (should be TPS, ideally) to the DB
                         long insert_id = writeChunkData(worldname, xCoord, zCoord);
@@ -126,6 +137,8 @@ public class CommandListChunks implements CommandExecutor {
             }
         }
         System.out.println("Done writing to database!");
+
+        new mySQL().closeDBConnection();
         return true;
     }
 
@@ -134,17 +147,22 @@ public class CommandListChunks implements CommandExecutor {
         // find the key
         long InsertID = 0;
         String search_sql = "SELECT chunk_id FROM minecraft_log.lag_chunks WHERE world='" + world + "' AND x_coord=" + xCoord + " AND z_coord="+ zCoord;
+        System.out.println("search SQL:" + search_sql);
+        
+        
         try (
             PreparedStatement statement = connection.prepareStatement(search_sql);
             ResultSet results = statement.executeQuery();
         ) {
             if (!results.isBeforeFirst() ) {
                 String sql = "INSERT INTO minecraft_log.lag_chunks SET world='" + world + "', x_coord="+xCoord+", z_coord="+ zCoord;
+                System.out.println("insert SQL:" + sql);
                 InsertID = executeSQLUpdate(sql, true);
                 return InsertID;
             } else {
                 while (results.next()) {
                     InsertID = results.getLong("chunk_id");
+                    System.out.println("chunk id:" + InsertID);
                     return InsertID;
                 }
             }
@@ -200,4 +218,3 @@ public class CommandListChunks implements CommandExecutor {
         return 0;
     }
 }
-
