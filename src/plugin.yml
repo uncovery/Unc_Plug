@@ -1,5 +1,5 @@
 name: UncPlug
-version: 1.0
+version: 1.1
 main: me.uncovery.uncplug.main
 commands:
     unc_chunks:
@@ -11,3 +11,6 @@ commands:
     unc_chunks_unload:
         description: unloads all chunks outside user reach and spawn chunks
         usage: /unc_chunks_unload
+    unc_itemlist:
+        description: creates a list of all existing items for server processing
+        usage: /unc_itemlist

@@ -1,5 +1,7 @@
 package me.uncovery.uncplug;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 import java.sql.*;
 
 public class main extends JavaPlugin {
@@ -12,7 +14,6 @@ public class main extends JavaPlugin {
         // config file setup
         
         thisPlugin = this;
-        
         this.getConfig().options().copyDefaults(true);
         this.saveConfig();
         this.reloadConfig();
@@ -21,6 +22,16 @@ public class main extends JavaPlugin {
         getCommand("unc_chunks").setExecutor(new CommandListChunks());
         getCommand("unc_chunks_reset").setExecutor(new CommandListChunks());
         getCommand("unc_chunks_unload").setExecutor(new CommandUnloadChunks());
+        getCommand("unc_itemlist").setExecutor(new materials());
+        
+        // start scheduler
+        BukkitScheduler scheduler = Bukkit.getScheduler();
+        scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
+            @Override
+            public void run() {
+                new Scheduler().runScheduleTask();
+            }
+        }, 0L, 20 * 4); // run every minute
     }
     
     public boolean openDBConnection() throws SQLException {

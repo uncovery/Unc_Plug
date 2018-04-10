@@ -6,7 +6,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.Chunk;
-import net.minecraft.server.v1_12_R1.MinecraftServer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,18 +46,6 @@ public class CommandListChunks implements CommandExecutor   {
     }
 
     /**
-     * gets the current minute TPS as double
-     * @return double
-     */
-    public double getTPS() {
-        double[] tps = MinecraftServer.getServer().recentTps;
-        if (tps[0] > 20) {
-            return 20;
-        }
-        return tps[0];
-    }
-
-    /**
      * get a list of all loaded chunks per world, write them to database with TPS information
      *
      * @return
@@ -66,7 +53,7 @@ public class CommandListChunks implements CommandExecutor   {
      */
     public boolean getLoadedChunks() throws SQLException {
         // get current TPS
-        double tps = getTPS();
+        double tps = new tps().getTPS();
 
         boolean check = new mySQL().openDBConnection();
         if (!check) {
@@ -157,7 +144,7 @@ public class CommandListChunks implements CommandExecutor   {
         ) {
             if (!results.isBeforeFirst() ) {
                 String sql = "INSERT INTO minecraft_log.lag_chunks SET world='" + world + "', x_coord="+xCoord+", z_coord="+ zCoord;
-                InsertID = executeSQLUpdate(sql, true);
+                InsertID = new mySQL().executeSQLUpdate(sql, true);
                 return InsertID;
             } else {
                 while (results.next()) {
@@ -179,7 +166,7 @@ public class CommandListChunks implements CommandExecutor   {
         // like this we need only one statement for the whole world
         // we concatenate the strings built bove with string.join
         String sql = "INSERT INTO minecraft_log.lag_events (chunk_id, tps) VALUES " + String.join(",", ChunkIDs);
-        long check = executeSQLUpdate(sql, true);
+        long check = new mySQL().executeSQLUpdate(sql, true);
         if (check == -1) {
             return false;
         }
@@ -194,33 +181,14 @@ public class CommandListChunks implements CommandExecutor   {
             return false;
         }        
         String sql1 = "TRUNCATE TABLE minecraft_log.lag_chunks";
-        executeSQLUpdate(sql1, false);
+        new mySQL().executeSQLUpdate(sql1, false);
 
         String sql2 = "TRUNCATE TABLE minecraft_log.lag_events";
-        executeSQLUpdate(sql2, false);
+        new mySQL().executeSQLUpdate(sql2, false);
         new mySQL().closeDBConnection();
         return true;
     }
 
     // abstraction to write SQL data to the DB
-    public long executeSQLUpdate(String sql, boolean getInsertID) throws SQLException {
-        try (
-            PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-        ) {
-            statement.executeUpdate();
-            if (getInsertID) {
-                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        return generatedKeys.getLong(1);
-                    } else {
-                        throw new SQLException("SQL Statement did not create insert ID: " + sql);
-                    }
-                }
-            }
-        } catch (SQLException S) {
-            System.err.println("DB Error in executeSQLUpdate: " + S);
-            return -1;
-        }
-        return 0;
-    }
+    
 }

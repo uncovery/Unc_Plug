@@ -6,9 +6,11 @@
 package me.uncovery.uncplug;
 
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import static me.uncovery.uncplug.main.thisPlugin;
-import java.sql.*;
 import static me.uncovery.uncplug.main.connection;
 
 /**
@@ -57,4 +59,25 @@ public class mySQL {
         }
         return true;
     }
+    
+    public long executeSQLUpdate(String sql, boolean getInsertID) throws SQLException {
+        try (
+            PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        ) {
+            statement.executeUpdate();
+            if (getInsertID) {
+                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getLong(1);
+                    } else {
+                        throw new SQLException("SQL Statement did not create insert ID: " + sql);
+                    }
+                }
+            }
+        } catch (SQLException S) {
+            System.err.println("DB Error in executeSQLUpdate: " + S);
+            return -1;
+        }
+        return 0;
+    }    
 }
